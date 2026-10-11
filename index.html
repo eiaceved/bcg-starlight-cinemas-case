@@ -1,0 +1,1124 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Starlight Cinemas Mock Case</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: one reading column (max 820px) under a sticky step rail. Every step runs the same loop:
+   interviewer prompt -> your move -> reveal a strong answer. Exhibits sit inside the column like workpapers. */
+:root{
+  --bg:#f2f5f6; --surface:#ffffff; --surface-2:#e8eef0; --fg:#13202a; --fg-2:#44525d; --muted:#6c7a84; --line:#d4dce0;
+  --accent:#0d6b61; --accent-ink:#0a5a51; --accent-soft:#dbeeea; --on-accent:#ffffff;
+  --s1:#2a78d6; --s2:#eb6834; --grid:#e2e8ea; --axis:#b6c1c7;
+  --good:#0ca30c; --good-ink:#006300; --crit:#d03b3b; --crit-ink:#ad2828;
+  --h1:#e6f0fc; --h2:#b7d3f6; --h3:#6da7ec; --h4:#2a78d6; --h5:#104281;
+  --dot:#eb6834; --dot-ink:#111111; --tip-bg:#13202a; --tip-fg:#ffffff;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1215; --surface:#151c20; --surface-2:#1b252a; --fg:#e5ecef; --fg-2:#a8b4bb; --muted:#7c8992; --line:#29343a;
+    --accent:#4cc2b1; --accent-ink:#72d4c6; --accent-soft:#11302c; --on-accent:#06201c;
+    --s1:#3987e5; --s2:#d95926; --grid:#222c32; --axis:#3a464d;
+    --good:#0ca30c; --good-ink:#3dc43d; --crit:#d03b3b; --crit-ink:#ff8484;
+    --h1:#1a2531; --h2:#1c3c63; --h3:#22599b; --h4:#3987e5; --h5:#86b6ef;
+    --dot:#f07a45; --dot-ink:#111111; --tip-bg:#e5ecef; --tip-fg:#0d1215;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1215; --surface:#151c20; --surface-2:#1b252a; --fg:#e5ecef; --fg-2:#a8b4bb; --muted:#7c8992; --line:#29343a;
+  --accent:#4cc2b1; --accent-ink:#72d4c6; --accent-soft:#11302c; --on-accent:#06201c;
+  --s1:#3987e5; --s2:#d95926; --grid:#222c32; --axis:#3a464d;
+  --good:#0ca30c; --good-ink:#3dc43d; --crit:#d03b3b; --crit-ink:#ff8484;
+  --h1:#1a2531; --h2:#1c3c63; --h3:#22599b; --h4:#3987e5; --h5:#86b6ef;
+  --dot:#f07a45; --dot-ink:#111111; --tip-bg:#e5ecef; --tip-fg:#0d1215;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:17px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding-inline:20px}
+h1,h2,h3{font-family:var(--display);font-stretch:86%;text-wrap:balance;margin:0;letter-spacing:-.01em}
+p{margin:0 0 .8em}
+a{color:var(--accent-ink)}
+b,strong{font-weight:700}
+.eyebrow,.lbl,.who{font:500 11px/1.4 var(--mono);letter-spacing:.09em;text-transform:uppercase}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* rail */
+.rail{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.rail-in{max-width:820px;margin:0 auto;padding:8px 20px;display:flex;gap:10px;align-items:center}
+.chips{display:flex;gap:4px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none;padding-block:2px}
+.chips::-webkit-scrollbar{display:none}
+.chips a{font:500 12px var(--mono);padding:5px 9px;border-radius:999px;color:var(--fg-2);white-space:nowrap;text-decoration:none}
+.chips a:hover{background:var(--surface-2)}
+.chips a.on{background:var(--fg);color:var(--bg)}
+.speed{display:flex;align-items:center;gap:6px;font:500 11px var(--mono);color:var(--muted);flex:none}
+.speed select{font:500 12px var(--mono);background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:3px 4px}
+
+/* hero */
+.hero{padding-block:56px 40px}
+.hero .eyebrow{color:var(--accent-ink);margin-bottom:14px}
+.hero h1{font-size:clamp(40px,8vw,64px);line-height:1;font-weight:800;font-stretch:80%}
+.lede{font-size:21px;line-height:1.5;color:var(--fg-2);max-width:36em;margin-top:18px}
+.how{list-style:none;padding:0;margin:26px 0 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.how li{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;font-size:15px;line-height:1.4;counter-increment:how}
+.how li::before{content:counter(how);display:block;font:600 12px var(--mono);color:var(--accent-ink);margin-bottom:4px}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+
+/* steps */
+.step{padding-block:52px;border-top:1px solid var(--line);scroll-margin-top:56px}
+.sh{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.idx{font:600 13px var(--mono);color:var(--accent-ink)}
+.sh h2{font-size:clamp(26px,4.4vw,32px);line-height:1.15;font-weight:750}
+.sh .listen{margin-left:auto}
+.sub{color:var(--fg-2);margin-top:8px;max-width:40em}
+
+.btn{font:600 14px/1.2 var(--body);border-radius:8px;padding:9px 14px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.small{font-size:13px;padding:6px 10px}
+.btn[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.btn svg{width:14px;height:14px;fill:currentColor;flex:none}
+
+.iv{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;margin-top:22px}
+.who{color:var(--muted);margin-bottom:8px}
+.iv p{font-size:19px;line-height:1.55}
+.iv p:last-child{margin-bottom:0}
+
+.move{display:flex;gap:12px 16px;align-items:center;flex-wrap:wrap;margin-top:18px;padding-block:14px;border-top:1px dashed var(--line);border-bottom:1px dashed var(--line)}
+.move .lbl{color:var(--accent-ink);flex:none}
+.move p{margin:0;flex:1 1 260px;min-width:0;font-weight:600}
+.move .acts{display:flex;gap:8px;flex-wrap:wrap}
+
+.ans{background:var(--accent-soft);border-radius:var(--r);padding:20px 22px;margin-top:14px}
+.ans .who{color:var(--accent-ink)}
+.ans h3{font-size:19px;margin:18px 0 8px;font-weight:700}
+.ans h3:first-of-type{margin-top:4px}
+.ans ul{margin:0 0 .6em;padding-left:1.2em}
+.ans li{margin-bottom:.35em}
+.script{font-size:18px;line-height:1.6}
+.script p{margin-bottom:.7em}
+.note{font-size:15px;color:var(--fg-2)}
+
+/* facts strip */
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:16px}
+.facts div{background:var(--surface);padding:12px 14px;min-width:0}
+.facts .k{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.facts .v{font:700 22px/1.2 var(--display);font-stretch:86%;margin-top:4px}
+.facts .d{font-size:13px;color:var(--fg-2);line-height:1.35;margin-top:2px}
+
+/* primer */
+.def{font:600 clamp(21px,3.4vw,26px)/1.35 var(--display);font-stretch:92%;margin-top:22px;max-width:30em}
+.split{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:22px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;min-width:0}
+.panel h3{font-size:19px;font-weight:700}
+.panel .tag{font:500 11px var(--mono);color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:2px 0 8px}
+.panel ul{margin:0;padding-left:1.1em;font-size:16px}
+.panel li{margin-bottom:.3em}
+.cycle{list-style:none;padding:0;margin:14px 0 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+.cycle li{position:relative;background:var(--surface-2);border-radius:8px;padding:12px 12px 10px;min-width:0}
+.cycle li b{display:block;font:700 17px var(--display);font-stretch:88%}
+.cycle li span{font-size:14px;color:var(--fg-2);line-height:1.35;display:block;margin-top:2px}
+.cycle li:not(:last-child)::after{content:"";position:absolute;right:-17px;top:50%;width:12px;height:12px;border-top:2px solid var(--muted);border-right:2px solid var(--muted);transform:translateY(-50%) rotate(45deg)}
+.cycle-note{font:500 12px var(--mono);color:var(--muted);margin-top:10px}
+.vocab{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
+.term{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
+.term b{display:block;font:700 16px var(--display);font-stretch:90%;margin-bottom:3px}
+.term p{margin:0;font-size:15px;line-height:1.45;color:var(--fg-2)}
+.h-sec{font:500 11px var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:30px}
+
+/* qa list */
+.qa{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.qa li{background:var(--surface);border-radius:8px;padding:12px 14px}
+.qa .q{font-weight:700}
+.qa .a{color:var(--fg-2);margin-top:2px}
+.qa .a::before{content:"Interviewer: ";font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+
+/* framework tree */
+.tree{margin-top:6px}
+.root{background:var(--fg);color:var(--bg);border-radius:8px;padding:12px 16px;font:700 18px/1.3 var(--display);font-stretch:90%;text-align:center;position:relative}
+.root::after{content:"";position:absolute;left:50%;bottom:-16px;width:2px;height:16px;background:var(--muted)}
+.branches{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px;padding-top:14px;border-top:2px solid var(--muted)}
+.branch{background:var(--surface);border-radius:8px;padding:12px 13px;min-width:0}
+.branch .n{font:600 12px var(--mono);color:var(--accent-ink)}
+.branch b{display:block;font:700 16px/1.25 var(--display);font-stretch:90%;margin:2px 0 6px}
+.branch ul{margin:0;padding-left:1.05em;font-size:14.5px;line-height:1.4}
+.branch li{margin-bottom:.3em}
+
+/* exhibits */
+.ex{margin:22px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 18px 14px}
+.ex-h{display:flex;justify-content:space-between;align-items:baseline;gap:6px 12px;flex-wrap:wrap}
+.ex-t{font:700 18px var(--display);font-stretch:88%}
+.ex-ref{font:500 12px var(--mono);color:var(--muted)}
+.ex-s{font-size:14px;color:var(--fg-2);margin-top:2px}
+.ex figcaption,.src{font:400 12px/1.45 var(--mono);color:var(--muted);margin-top:12px}
+.multiples{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.mini{border:1px solid var(--grid);border-radius:8px;padding:10px 10px 4px;min-width:0}
+.mini .nm{font-weight:700;font-size:14.5px;line-height:1.25;min-height:2.5em}
+.mini .ch{font:500 12px var(--mono);color:var(--fg-2)}
+.mini svg{display:block;width:100%;height:auto;margin-top:4px}
+.tblwrap{overflow-x:auto;margin-top:12px}
+table{border-collapse:collapse;width:100%;font-size:14.5px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--grid);white-space:nowrap}
+th{font:500 11px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+
+.hbar{margin-top:16px}
+.hrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:4px 14px;align-items:center;padding-block:9px;border-bottom:1px solid var(--grid)}
+.hrow:last-of-type{border-bottom:0}
+.hlab b{display:block;font-size:15px;line-height:1.3}
+.hlab span{font-size:13px;color:var(--fg-2);line-height:1.3;display:block}
+.track{position:relative;height:26px}
+.bar{position:absolute;left:0;top:5px;height:16px;border-radius:0 4px 4px 0;background:var(--s1);min-width:2px}
+.bar.b2{background:var(--s2)}
+.bval{position:absolute;top:2px;font:600 13px var(--mono);color:var(--fg);white-space:nowrap;padding-left:6px}
+.tol{position:absolute;top:-4px;bottom:-4px;width:0;border-left:1.5px solid var(--fg-2)}
+.axis{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:14px}
+.ticks{position:relative;height:18px;font:500 11px var(--mono);color:var(--muted);border-top:1px solid var(--axis)}
+.ticks span{position:absolute;top:3px;transform:translateX(-50%)}
+.ticks span:first-child{transform:none}
+.ticks span:last-child{transform:translateX(-100%)}
+.status{font:600 12px var(--mono);display:inline-flex;gap:5px;align-items:center;margin-top:3px}
+.status.bad{color:var(--crit-ink)} .status.ok{color:var(--good-ink)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--fg-2);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.tolnote{font:500 12px var(--mono);color:var(--fg-2);margin-top:8px}
+
+/* given table + calc steps */
+.given{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:16px}
+.given div{background:var(--surface);padding:11px 13px;min-width:0}
+.given .k{font-size:13px;color:var(--fg-2);line-height:1.3}
+.given .v{font:700 20px/1.2 var(--display);font-stretch:88%;margin-top:3px}
+.calc{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.calc li{background:var(--surface);border-radius:8px;padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 14px;align-items:center}
+.calc .t{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);grid-column:1/-1}
+.calc .f{font-size:16px;min-width:0}
+.calc .r{font:700 20px var(--display);font-stretch:88%;text-align:right;white-space:nowrap}
+.stepper .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chipset{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chipset span{font:500 12px var(--mono);background:var(--surface);border-radius:6px;padding:4px 8px;color:var(--fg-2)}
+.chipset b{color:var(--fg)}
+
+/* heat map */
+.heat{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;align-items:start;margin-top:12px}
+.heat svg{width:100%;height:auto;display:block}
+.heat svg text{font-family:var(--mono)}
+.reg{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.reg li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14.5px;line-height:1.3;padding-block:6px;border-bottom:1px solid var(--grid)}
+.reg .id{width:28px;height:28px;border-radius:50%;background:var(--dot);color:var(--dot-ink);font:600 11px var(--mono);display:grid;place-items:center}
+.reg .sc{font:600 13px var(--mono);color:var(--fg-2);text-align:right;white-space:nowrap}
+.ramp{display:flex;align-items:center;gap:6px;font:500 11px var(--mono);color:var(--muted);margin-top:10px}
+.ramp i{width:22px;height:10px;display:inline-block;border-radius:2px}
+
+/* roadmap */
+.road{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:8px}
+.phase{background:var(--surface);border-radius:8px;padding:12px 14px;min-width:0}
+.phase .d{font:600 12px var(--mono);color:var(--accent-ink)}
+.phase b{display:block;font:700 18px var(--display);font-stretch:88%;margin:2px 0 6px}
+.phase ul{margin:0;padding-left:1.05em;font-size:15px;line-height:1.4}
+.phase li{margin-bottom:.35em}
+.struct{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+.struct span{font:600 12px var(--mono);padding:4px 9px;border-radius:999px;background:var(--surface);color:var(--fg)}
+
+/* drivers */
+.drivers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:6px}
+.drivers div{background:var(--surface);border-radius:8px;padding:11px 13px;min-width:0}
+.drivers b{display:block;font:700 16px var(--display);font-stretch:90%}
+.drivers p{margin:2px 0 0;font-size:15px;color:var(--fg-2);line-height:1.45}
+.eq{font:600 15px var(--mono);background:var(--surface);border-radius:8px;padding:10px 14px;margin:6px 0 12px;overflow-x:auto}
+.drill{margin-top:34px}
+.drill h3{font-size:22px;font-weight:750}
+
+/* multiple choice */
+.mc{margin-top:20px}
+.mc-head{display:flex;gap:10px;align-items:flex-start}
+.stem{font-weight:700;font-size:18px;line-height:1.45;margin:0 0 10px;flex:1;min-width:0}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;display:flex;gap:10px;align-items:flex-start;padding:11px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);font:inherit;font-size:16px;line-height:1.45;cursor:pointer;width:100%}
+.opt:hover:not([disabled]){border-color:var(--muted)}
+.opt[disabled]{cursor:default}
+.opt .L{font:600 13px/1.6 var(--mono);color:var(--muted);flex:none}
+.opt .x{flex:1;min-width:0}
+.opt .tag{font:600 12px/1.7 var(--mono);white-space:nowrap;flex:none}
+.opt.right{border-color:var(--good);background:color-mix(in srgb,var(--good) 10%,var(--surface))}
+.opt.right .tag{color:var(--good-ink)}
+.opt.wrong{border-color:var(--crit);background:color-mix(in srgb,var(--crit) 9%,var(--surface))}
+.opt.wrong .tag{color:var(--crit-ink)}
+.why{margin-top:10px;padding:13px 16px;border-radius:8px;background:var(--surface-2);font-size:16px}
+.why p:last-child{margin-bottom:0}
+.test .mc{border-top:1px solid var(--line);padding-top:20px;margin-top:22px}
+.test .mc:first-of-type{border-top:0;padding-top:0}
+.qn{font:600 13px var(--mono);color:var(--accent-ink);display:block;margin-bottom:2px}
+.scorebar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 50px);z-index:5;display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--bg);padding-block:10px;margin-top:14px;border-bottom:1px solid var(--line)}
+.score{font:700 22px var(--display);font-stretch:86%}
+.score small{font:500 12px var(--mono);color:var(--muted);margin-left:6px}
+.done{background:var(--accent-soft);border-radius:var(--r);padding:16px 18px;margin-top:24px}
+
+footer{padding-block:40px 64px;border-top:1px solid var(--line);font-size:14px;color:var(--fg-2)}
+
+#tip{position:fixed;z-index:50;pointer-events:none;background:var(--tip-bg);color:var(--tip-fg);font:500 12px/1.4 var(--mono);padding:6px 9px;border-radius:6px;max-width:260px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+
+@media (max-width:760px){
+  .branches{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .heat{grid-template-columns:minmax(0,1fr)}
+  .road{grid-template-columns:minmax(0,1fr)}
+  .multiples{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:600px){
+  body{font-size:16px}
+  .how{grid-template-columns:minmax(0,1fr)}
+  .split,.vocab,.drivers{grid-template-columns:minmax(0,1fr)}
+  .cycle{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cycle li:nth-child(2)::after{display:none}
+  .given{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hrow,.axis{grid-template-columns:minmax(0,1fr)}
+  .axis>div:first-child{display:none}
+  .iv p{font-size:18px}
+  .speed span{display:none}
+}
+@media (max-width:420px){
+  .branches{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:no-preference){
+  .ans:not([hidden]),.why:not([hidden]),.calc li:not([hidden]){animation:rise .28s ease-out}
+  @keyframes rise{from{transform:translateY(4px);opacity:.4}to{transform:none;opacity:1}}
+  html{scroll-behavior:smooth}
+}
+[hidden]:not([hidden=until-found i]){display:none!important}
+/* scoring register */
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 4px}
+.scorer li{grid-template-columns:auto minmax(0,1fr) auto}
+.scorer .nm{min-width:0}
+.pick{display:flex;gap:6px;align-items:center}
+.pick select{font:500 13px var(--mono);background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:4px 4px;min-width:44px}
+.pick .sc{min-width:34px}
+.reg .w{display:block;font-size:13px;color:var(--fg-2);margin-top:2px;line-height:1.35}
+.reg .nm b{font-weight:600}
+.mytop{font:600 15px/1.4 var(--body);margin:12px 0 0;color:var(--fg)}
+.mapnote{font:500 12px var(--mono);color:var(--fg-2);margin:8px 0 0}
+.bar.b3{background:var(--fg-2)}
+/* voice menu */
+.voicebar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin-top:22px;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.voicebar label{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.voicebar select{flex:1 1 220px;min-width:0;max-width:100%;font:500 13px var(--mono);background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 6px}
+.vhint{flex-basis:100%;margin:0;font-size:14px;line-height:1.45;color:var(--fg-2)}
+@media (max-width:600px){.given>div:last-child:nth-child(odd){grid-column:1/-1}}
+@media (max-width:420px){
+  .scorer li{grid-template-columns:auto minmax(0,1fr)}
+  .scorer .pick{grid-column:2}
+}
+</style>
+
+<nav class="rail" aria-label="Case steps">
+  <div class="rail-in">
+    <div class="chips" id="chips">
+      <a href="#primer">Primer</a><a href="#prompt">Prompt</a><a href="#clarify">Clarify</a><a href="#framework">Framework</a><a href="#ex1">Exhibit 1</a><a href="#ex2">Exhibit 2</a><a href="#sizing">Math</a><a href="#prioritize">Ideas</a><a href="#recommend">Recommend</a><a href="#drills">Drills</a><a href="#test">Test</a>
+    </div>
+    <label class="speed" for="rate"><span>Speed</span>
+      <select id="rate" aria-label="Read-aloud speed">
+        <option value="0.9">0.9×</option><option value="1" selected>1×</option><option value="1.15">1.15×</option><option value="1.3">1.3×</option>
+      </select>
+    </label>
+  </div>
+</nav>
+
+<main>
+<header class="hero wrap">
+  <p class="eyebrow">Mock case · BCG-style · candidate-led · about 35 minutes</p>
+  <h1>Starlight Cinemas</h1>
+  <p class="lede" data-say>A movie theater chain's profit fell from 60 million dollars to 20 million in three years. You lead this case: find out why, and build a plan to get the profit back.</p>
+  <ol class="how">
+    <li><b>Listen or read</b> the interviewer's prompt. Every step has a Listen button.</li>
+    <li><b>Answer out loud</b> before you reveal anything. Use the timers.</li>
+    <li><b>Compare</b> with the strong answer, then move to the next step.</li>
+  </ol>
+  <div class="hero-actions">
+    <a class="btn primary" href="#prompt">Start the case</a>
+    <a class="btn" href="#primer">2-minute primer first</a>
+    <a class="btn" href="#test">Jump to the practice test</a>
+  </div>
+  <div class="voicebar">
+    <label for="voicePick">Read-aloud voice</label>
+    <select id="voicePick"></select>
+    <button class="btn small" type="button" id="voiceTest">Try it</button>
+    <p class="vhint">Sounds robotic? Pick a voice marked "natural." For the most human voices, open this page in Microsoft Edge, which includes free natural voices. On a Mac, you can also download a Premium voice in System Settings › Accessibility › Spoken Content › System voice › Manage Voices.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- 01 PRIMER -->
+<section class="step" id="primer">
+  <div class="sh"><span class="idx">01</span><h2>How a BCG-style case works</h2><button class="btn small listen" type="button">Listen</button></div>
+  <p class="def" data-say>In a BCG-style case, you drive. After the prompt, you lay out a structure, decide where to dig first, and ask for the data you need. The interviewer hands you charts and pushes on your logic.</p>
+  <p class="sub" data-say>Put simply, they want to see you lead a messy problem to a clear answer, read charts quickly, and use good business judgment. Formats vary by office, so confirm the details with your recruiter.</p>
+
+  <div class="split">
+    <div class="panel">
+      <h3>How the interview runs</h3>
+      <p class="tag">Based on public prep guides</p>
+      <ul data-say>
+        <li>Many offices use an online test first, like Casey, a chatbot case of about 30 minutes.</li>
+        <li>Live interviews run about 45 minutes: around 30 for the case, and 10 to 15 for fit questions.</li>
+        <li>Usually two or three interviews in the first round, then two or three in the final round.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>What they look for</h3>
+      <p class="tag">You lead, they test</p>
+      <ul data-say>
+        <li>Leading the case: you choose the next step, and say why.</li>
+        <li>Reading exhibits fast: charts and tables come often.</li>
+        <li>Math built into the questions, done cleanly.</li>
+        <li>Business judgment: does the answer make sense for this client?</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="h-sec">What the case feels like</p>
+  <ul data-say style="margin:8px 0 0;padding-left:1.2em">
+    <li><b>Structure.</b> You set the plan and say where you'd start, with a reason.</li>
+    <li><b>Ask for data.</b> "Can I see attendance over the last few years?" Specific asks get useful charts.</li>
+    <li><b>Read the chart.</b> Lead with the one or two things that matter.</li>
+    <li><b>Do the math.</b> Round numbers, every step out loud.</li>
+    <li><b>Recommend.</b> The answer first, then reasons, risks, and next steps.</li>
+  </ul>
+
+  <p class="h-sec">The shape of the case</p>
+  <ol class="cycle" data-say aria-label="Structure, dig, quantify, recommend">
+    <li><b>Structure</b><span>Your plan of attack.</span></li>
+    <li><b>Dig</b><span>Ask for the right data.</span></li>
+    <li><b>Quantify</b><span>Put numbers on it.</span></li>
+    <li><b>Recommend</b><span>Answer first.</span></li>
+  </ol>
+  <p class="cycle-note">You choose the path; the interviewer follows and pushes back</p>
+
+  <p class="h-sec">Ten terms to drop naturally</p>
+  <div class="vocab">
+    <div class="term" data-say><b>Profit tree</b><p>Profit equals revenue minus costs. Then split each side again: revenue into price times volume, costs into fixed and variable.</p></div>
+    <div class="term" data-say><b>Price × volume</b><p>Revenue is what you charge times how many you sell. Always check both before deciding which one broke.</p></div>
+    <div class="term" data-say><b>Contribution per customer</b><p>What each extra customer adds to profit after variable costs. At Starlight, about 9 dollars per visitor.</p></div>
+    <div class="term" data-say><b>Operating leverage</b><p>When most costs are fixed, a small drop in customers causes a big drop in profit. It works the other way too.</p></div>
+    <div class="term" data-say><b>Utilization</b><p>How much of your capacity gets used, like the share of seats filled at a theater.</p></div>
+    <div class="term" data-say><b>Revenue sharing</b><p>Splitting sales with a partner. Theaters pay film studios a big share of every ticket.</p></div>
+    <div class="term" data-say><b>Premiumization</b><p>Getting customers to trade up to a better, pricier product, like recliner seats and giant screens.</p></div>
+    <div class="term" data-say><b>Cannibalization</b><p>When a new product takes sales from your own existing product instead of winning new customers.</p></div>
+    <div class="term" data-say><b>Dynamic pricing</b><p>Changing prices with demand: cheaper on a quiet Tuesday, full price on a Friday night.</p></div>
+    <div class="term" data-say><b>Membership</b><p>A monthly fee for a set number of visits. It brings steady revenue and gets people to come more often.</p></div>
+  </div>
+</section>
+
+<!-- 02 PROMPT -->
+<section class="step" id="prompt">
+  <div class="sh"><span class="idx">02</span><h2>The case prompt</h2><button class="btn small listen" type="button">Listen</button></div>
+  <div class="iv">
+    <p class="who">Interviewer</p>
+    <p data-say>Our client is Starlight Cinemas, a chain of 120 movie theaters with about 1,200 screens across the U.S.</p>
+    <p data-say>Three years ago, Starlight made 60 million dollars in profit. Last year it made only 20 million, even though it raised ticket and snack prices.</p>
+    <p data-say>The CEO has asked us to figure out why profit fell, and what Starlight should do to get back to 60 million within three years. Where would you like to start?</p>
+  </div>
+  <div class="facts">
+    <div><div class="k">Theaters</div><div class="v">120</div><div class="d">About 1,200 screens</div></div>
+    <div><div class="k">Profit, 3 years ago</div><div class="v">$60M</div><div class="d">Before the decline</div></div>
+    <div><div class="k">Profit, last year</div><div class="v">$20M</div><div class="d">Down two-thirds</div></div>
+    <div><div class="k">Goal</div><div class="v">$60M</div><div class="d">Within three years</div></div>
+  </div>
+  <div class="move">
+    <span class="lbl">Your move</span>
+    <p data-say>Restate the question in one sentence, then say what you'd like to clarify.</p>
+    <div class="acts"><button class="btn small timer" type="button" data-secs="20">20s timer</button><button class="btn primary small reveal" type="button" aria-controls="a-prompt" aria-expanded="false">Show a strong answer</button></div>
+  </div>
+  <div class="ans" id="a-prompt" hidden>
+    <p class="who">Strong answer</p>
+    <div class="script"><p data-say>"So profit fell from 60 million to 20 million in three years, even with higher prices, and the CEO wants to know why, and how to get back to 60 million within three years. Is that right? Before I structure it, I have a few quick questions."</p></div>
+    <p class="note" data-say>Interviewer: "Sure, go ahead." In a candidate-led case, the interviewer hands you the wheel right away. Taking it confidently is part of the test.</p>
+  </div>
+</section>
+
+<!-- 03 CLARIFY -->
+<section class="step" id="clarify">
+  <div class="sh"><span class="idx">03</span><h2>Clarifying questions</h2><button class="btn small listen" type="button">Listen</button></div>
+  <div class="move">
+    <span class="lbl">Your move</span>
+    <p data-say>Ask two or three clarifying questions. Pick ones whose answers would change your approach.</p>
+    <div class="acts"><button class="btn small timer" type="button" data-secs="60">60s timer</button><button class="btn primary small reveal" type="button" aria-controls="a-clarify" aria-expanded="false">Show strong questions</button></div>
+  </div>
+  <div class="ans" id="a-clarify" hidden>
+    <p class="who">Strong questions, with the interviewer's answers</p>
+    <ul class="qa">
+      <li data-say><div class="q">Is the drop happening across all theaters, or in some?</div><div class="a">Across most of them, but it's worst in small-town locations.</div></li>
+      <li data-say><div class="q">Are competitors seeing the same thing?</div><div class="a">Yes, the whole industry has fewer visitors than a few years ago, but the top chains are recovering faster.</div></li>
+      <li data-say><div class="q">How does Starlight make money?</div><div class="a">Tickets and concessions. Studios take about 55 percent of ticket revenue. On snacks, Starlight keeps about 75 cents of every dollar after food costs.</div></li>
+      <li data-say><div class="q">What's on the table: closing theaters, investing?</div><div class="a">Everything. The board would fund up to 200 million dollars of investment.</div></li>
+      <li data-say><div class="q">Have costs changed?</div><div class="a">Wages and rent went up a little. Most costs, like rent and staff, are fixed.</div></li>
+    </ul>
+    <p class="note" style="margin-top:12px" data-say>Skip questions that don't change your approach, like which movies did best last year. Two or three sharp questions beat six generic ones.</p>
+  </div>
+</section>
+
+<!-- 04 FRAMEWORK -->
+<section class="step" id="framework">
+  <div class="sh"><span class="idx">04</span><h2>Build the framework</h2><button class="btn small listen" type="button">Listen</button></div>
+  <div class="iv">
+    <p class="who">Interviewer</p>
+    <p data-say>Okay. How do you want to approach this?</p>
+  </div>
+  <div class="move">
+    <span class="lbl">Your move</span>
+    <p data-say>Take 60 seconds to sketch your structure. Then walk through it, say where you'd start, and ask for specific data.</p>
+    <div class="acts"><button class="btn small timer" type="button" data-secs="60">60s timer</button><button class="btn primary small reveal" type="button" aria-controls="a-frame" aria-expanded="false">Show a strong framework</button></div>
+  </div>
+  <div class="ans" id="a-frame" hidden>
+    <p class="who">Strong framework</p>
+    <div class="tree">
+      <div class="root">Why did Starlight's profit fall from $60M to $20M, and how does it get back?</div>
+      <div class="branches">
+        <div class="branch"><span class="n">1</span><b>Revenue</b><ul><li>Number of visitors</li><li>Ticket price per visitor</li><li>Snack spend per visitor</li></ul></div>
+        <div class="branch"><span class="n">2</span><b>Costs</b><ul><li>Studios' share of tickets</li><li>Food costs (variable)</li><li>Rent, staff (fixed)</li></ul></div>
+        <div class="branch"><span class="n">3</span><b>Market</b><ul><li>Industry attendance trend</li><li>Streaming and release timing</li><li>Rivals' moves, like premium screens</li></ul></div>
+        <div class="branch"><span class="n">4</span><b>Ways to fix it</b><ul><li>Fill empty seats</li><li>Trade customers up</li><li>Cut what loses money</li></ul></div>
+      </div>
+    </div>
+    <h3>Say it like this</h3>
+    <div class="script">
+      <p data-say>"Profit is revenue minus costs, so I'll split it that way. On revenue: the number of visitors, ticket price, and snack spend per visitor. On costs: the studios' share of tickets, food costs, and fixed costs like rent and staff. I'd also check the market, to see whether this is a Starlight problem or an industry problem. Then I'd look at ways to fix it. Since prices went up and profit still fell, my hypothesis is that visitors dropped while fixed costs stayed put. Could I see attendance and pricing over the last few years?"</p>
+    </div>
+    <h3>Why it works</h3>
+    <ul data-say>
+      <li>It's MECE: revenue and costs together cover all of profit.</li>
+      <li>It separates a Starlight problem from an industry problem.</li>
+      <li>It ends with a hypothesis and a specific data request. In a candidate-led case, that's you steering.</li>
+    </ul>
+    <p class="note" data-say>If you blank, the profit tree, revenue as price times volume and costs as fixed plus variable, works for any profitability case.</p>
+  </div>
+</section>
+
+<!-- 05 EXHIBIT 1 -->
+<section class="step" id="ex1">
+  <div class="sh"><span class="idx">05</span><h2>Exhibit 1: four years of trends</h2><button class="btn small listen" type="button">Listen</button></div>
+  <div class="iv">
+    <p class="who">Interviewer</p>
+    <p data-say>Good. Here's what you asked for, plus a few other measures. What stands out?</p>
+  </div>
+  <figure class="ex">
+    <div class="ex-h"><span class="ex-t">Starlight Cinemas, 2022 to 2025</span><span class="ex-ref">Exhibit 1 · WP-TRD-01</span></div>
+    <p class="ex-s">Yearly figures for the whole chain. Each panel has its own scale, starting at zero.</p>
+    <div class="multiples" id="mult"></div>
+    <div class="row" style="margin-top:12px"><button class="btn small reveal" type="button" aria-controls="t-ex1" aria-expanded="false">Show as table</button></div>
+    <div class="tblwrap" id="t-ex1" hidden></div>
+    <figcaption>Source: Starlight finance team (case data).</figcaption>
+  </figure>
+
+  <div class="mc" data-answer="1">
+    <div class="mc-head"><p class="stem" data-say>Which finding should you lead with?</p></div>
+    <div class="opts">
+      <button class="opt" type="button" data-say>Prices went up, so revenue must be growing.</button>
+      <button class="opt" type="button" data-say>Visitors fell by a quarter while costs stayed mostly fixed, so profit fell much faster than visitors. Higher prices didn't make up for it.</button>
+      <button class="opt" type="button" data-say>Snack spending is the main problem.</button>
+      <button class="opt" type="button" data-say>Premium screens are hurting profit.</button>
+    </div>
+    <div class="why" hidden>
+      <p data-say>Visitors dropped from 40 million to 30 million, down 25 percent. Profit dropped two-thirds, from 60 million to 20 million. That gap is operating leverage: rent and staff don't shrink when fewer people come. Ticket prices and snack spend both rose, which helped, but not enough. Two clues for later: only 16 percent of seats are filled, and premium screens keep growing their share, so customers will pay more for a better experience.</p>
+    </div>
+  </div>
+
+  <div class="move">
+    <span class="lbl">Then</span>
+    <p data-say>Say the insight, tie it to the goal, and ask for your next piece of data.</p>
+    <div class="acts"><button class="btn primary small reveal" type="button" aria-controls="a-ex1" aria-expanded="false">Show how to say it</button></div>
+  </div>
+  <div class="ans" id="a-ex1" hidden>
+    <p class="who">Say it like this</p>
+    <div class="script"><p data-say>"The big story is volume. Visitors are down 25 percent, but profit is down two-thirds, because most costs are fixed. Higher prices and snack spend helped but didn't close the gap. Two things give me hope: 84 percent of seats are empty, so there's room to fill them, and premium screens keep growing, so people will pay for a better experience. Can I see how much each factor moved profit?"</p></div>
+    <p class="note" data-say>Notice the pattern: insight, so-what for the goal, then your own next ask. In a candidate-led case, that ask is how you move to Exhibit 2.</p>
+  </div>
+</section>
+
+<!-- 06 EXHIBIT 2 -->
+<section class="step" id="ex2">
+  <div class="sh"><span class="idx">06</span><h2>Exhibit 2: where the profit went</h2><button class="btn small listen" type="button">Listen</button></div>
+  <div class="iv">
+    <p class="who">Interviewer</p>
+    <p data-say>Here's the finance team's walk from 60 million to 20 million. What's your read?</p>
+  </div>
+  <figure class="ex">
+    <div class="ex-h"><span class="ex-t">Profit bridge: three years ago to last year</span><span class="ex-ref">Exhibit 2 · WP-PFT-02</span></div>
+    <p class="ex-s">$ millions. Each bar shows how much one factor added or took away.</p>
+    <div class="legend"><span><i style="background:var(--fg-2)"></i>Profit</span><span><i style="background:var(--s1)"></i>Added</span><span><i style="background:var(--s2)"></i>Took away</span></div>
+    <div class="hbar" id="hb"></div>
+    <figcaption>Source: Starlight finance team estimates (case data).</figcaption>
+  </figure>
+
+  <div class="mc" data-answer="2">
+    <div class="mc-head"><p class="stem" data-say>What's the so-what?</p></div>
+    <div class="opts">
+      <button class="opt" type="button" data-say>Studios taking a bigger share is the main problem.</button>
+      <button class="opt" type="button" data-say>Starlight should raise prices again, since higher prices added 25 million.</button>
+      <button class="opt" type="button" data-say>Losing 10 million visitors cost 90 million, more than all the price and snack gains combined. The fix has to bring people back and fill seats, not just raise prices.</button>
+      <button class="opt" type="button" data-say>Wages are the main problem.</button>
+    </div>
+    <div class="why" hidden>
+      <p data-say>Higher ticket prices and snack spend added 60 million together. Fewer visitors took away 90 million. Each lost visitor costs about 9 dollars of profit: about 4 dollars and 50 cents from the ticket after the studios' share, and about 4 dollars and 50 cents from snacks. Raising prices again risks driving even more people away.</p>
+    </div>
+  </div>
+
+  <div class="move">
+    <span class="lbl">Then</span>
+    <p data-say>Synthesize both exhibits in three sentences, and propose what to test next.</p>
+    <div class="acts"><button class="btn primary small reveal" type="button" aria-controls="a-ex2" aria-expanded="false">Show how to say it</button></div>
+  </div>
+  <div class="ans" id="a-ex2" hidden>
+    <p class="who">Say it like this</p>
+    <div class="script"><p data-say>"Volume is the problem. Losing 10 million visitors cost about 90 million of profit, while higher prices and snack spend only added about 60 million. With 84 percent of seats empty and fixed costs that don't move, filling seats is the best lever, and the premium trend suggests people will pay more for a better experience. I'd like to test whether converting screens to premium pays off."</p></div>
+  </div>
+</section>
+
+<!-- 07 MATH -->
+<section class="step" id="sizing">
+  <div class="sh"><span class="idx">07</span><h2>Premium screens: do the math</h2><button class="btn small listen" type="button">Listen</button></div>
+  <p class="sub" data-say>Same skills as market sizing: state the formula, use round numbers, then sanity-check. The twist here is cannibalization.</p>
+  <div class="iv">
+    <p class="who">Interviewer</p>
+    <p data-say>The CEO likes the idea of converting regular screens into premium ones, with recliners and giant screens. Does one conversion pay off? And how many would it take to close the 40 million dollar gap?</p>
+  </div>
+  <div class="given">
+    <div><div class="k">Visitors per regular screen, per year</div><div class="v">25,000</div></div>
+    <div><div class="k">Profit per regular visitor</div><div class="v">$9</div></div>
+    <div><div class="k">Visitors per premium screen, per year</div><div class="v">30,000</div></div>
+    <div><div class="k">Profit per premium visitor</div><div class="v">$15</div></div>
+    <div><div class="k">Cost to convert one screen</div><div class="v">$900K</div></div>
+    <div><div class="k">Profit gap to close</div><div class="v">$40M</div></div>
+    <div><div class="k">Premium visitors who'd have come anyway</div><div class="v">1 in 3</div></div>
+    <div><div class="k">Investment budget</div><div class="v">$200M</div></div>
+    <div><div class="k">Screens in the chain</div><div class="v">1,200</div></div>
+  </div>
+  <p class="src">Case assumptions. Profit per visitor already takes out the studios' share and food costs.</p>
+  <div class="move">
+    <span class="lbl">Your move</span>
+    <p data-say>Say the formula first: extra profit per screen equals premium profit minus regular profit. Then ask yourself what you might be double counting.</p>
+    <div class="acts"><button class="btn small timer" type="button" data-secs="120">2 min timer</button></div>
+  </div>
+  <div class="stepper" style="margin-top:14px">
+    <ol class="calc">
+      <li class="st" hidden data-say="Step 1. A regular screen. 25 thousand visitors times 9 dollars is 225 thousand dollars a year."><span class="t">1 · Regular screen profit</span><span class="f">25,000 × $9</span><span class="r tnum">$225K</span></li>
+      <li class="st" hidden data-say="Step 2. A premium screen. 30 thousand visitors times 15 dollars is 450 thousand dollars. That's 225 thousand more than a regular screen."><span class="t">2 · Premium screen profit</span><span class="f">30,000 × $15 = $450K, so +$225K a screen</span><span class="r tnum">+$225K</span></li>
+      <li class="st" hidden data-say="Step 3. Payback on paper. 900 thousand divided by 225 thousand is 4 years. Closing the 40 million gap would take about 180 screens, or about 160 million dollars."><span class="t">3 · On paper</span><span class="f">$900K ÷ $225K = 4-year payback. $40M ÷ $225K ≈ 180 screens</span><span class="r tnum">180</span></li>
+      <li class="st" hidden data-say="Step 4. Cannibalization. One in three premium visitors, about 10 thousand, would have come anyway to a regular screen, bringing 9 dollars each. That's 90 thousand dollars we were double counting."><span class="t">4 · Cannibalization</span><span class="f">10,000 who'd have come anyway × $9</span><span class="r tnum">−$90K</span></li>
+      <li class="st" hidden data-say="Step 5. Real gain per screen. 225 thousand minus 90 thousand is about 135 thousand dollars a year, so payback stretches to almost 7 years."><span class="t">5 · Real gain per screen</span><span class="f">$225K − $90K. Payback ≈ 7 years</span><span class="r tnum">$135K</span></li>
+      <li class="st" hidden data-say="Step 6. The real answer. 40 million divided by 135 thousand is about 300 screens, costing about 270 million dollars. That's more than the 200 million budget, so premium screens alone can't close the gap."><span class="t">6 · Screens to close the gap</span><span class="f">$40M ÷ $135K ≈ 300 screens ≈ $270M. Over the $200M budget</span><span class="r tnum">≈300</span></li>
+    </ol>
+    <div class="row"><button class="btn primary small next" type="button">Reveal step 1 of 6</button><button class="btn small reset" type="button">Start over</button></div>
+  </div>
+
+  <figure class="ex">
+    <div class="ex-h"><span class="ex-t">Profit per screen, per year</span><span class="ex-ref">Premium math · $ thousands</span></div>
+    <div class="legend"><span><i style="background:var(--s1)"></i>What a regular screen already makes</span><span><i style="background:var(--s2)"></i>Extra from going premium</span></div>
+    <div class="hbar" id="siz"></div>
+    <figcaption>Counting cannibalization cuts the real gain from $225K to about $135K a screen.</figcaption>
+  </figure>
+
+  <div class="mc" data-answer="1">
+    <div class="mc-head"><p class="stem" data-say>Quick check: how much extra profit does one conversion really add, after cannibalization?</p></div>
+    <div class="opts">
+      <button class="opt" type="button" data-say>225 thousand dollars</button>
+      <button class="opt" type="button" data-say>135 thousand dollars</button>
+      <button class="opt" type="button" data-say>450 thousand dollars</button>
+      <button class="opt" type="button" data-say>90 thousand dollars</button>
+    </div>
+    <div class="why" hidden><p data-say>The premium screen adds 225 thousand on paper. But 10 thousand of its visitors would have come anyway, bringing 9 dollars each, or 90 thousand. 225 minus 90 is 135 thousand. Everyday version: if a new menu item sells 30 a day, but 10 of those buyers would have ordered something else anyway, only 20 are truly new sales.</p></div>
+  </div>
+
+  <div class="chipset" aria-label="Key results">
+    <span><b>On paper</b> = +$225K a screen</span>
+    <span><b>Cannibalization</b> = −$90K</span>
+    <span><b>Real gain</b> ≈ $135K, about 300 screens to close the gap</span>
+  </div>
+  <div class="move">
+    <span class="lbl">Then</span>
+    <p data-say>Summarize the math in two sentences, and add one sanity check.</p>
+    <div class="acts"><button class="btn primary small reveal" type="button" aria-controls="a-size" aria-expanded="false">Show how to say it</button></div>
+  </div>
+  <div class="ans" id="a-size" hidden>
+    <p class="who">Say it like this</p>
+    <div class="script"><p data-say>"One conversion adds about 225 thousand dollars on paper, but about a third of premium visitors would have come anyway, so the real gain is about 135 thousand, a payback of about 7 years. Closing the 40 million gap with premium alone would take about 300 screens and 270 million, more than the 200 million budget. So premium is part of the answer, in the busiest theaters, not the whole answer."</p></div>
+    <p class="note" data-say>If the interviewer asks why the cannibalization rate matters so much: "It's the difference between needing 180 screens and 300. I'd test it in a few theaters before committing the full budget."</p>
+  </div>
+</section>
+
+<!-- 08 IDEAS -->
+<section class="step" id="prioritize">
+  <div class="sh"><span class="idx">08</span><h2>Brainstorm, then prioritize</h2><button class="btn small listen" type="button">Listen</button></div>
+  <div class="iv">
+    <p class="who">Interviewer</p>
+    <p data-say>So premium screens won't close the gap on their own. What else could Starlight do? Brainstorm first. Then score the team's six ideas for ease and impact, from 1 to 5, and pick your top three.</p>
+  </div>
+  <div class="move">
+    <span class="lbl">Your move</span>
+    <p data-say>Brainstorm in groups for 60 seconds. Use your profit tree: more visitors, more money per visitor, lower costs.</p>
+    <div class="acts"><button class="btn small timer" type="button" data-secs="60">60s brainstorm</button><button class="btn primary small reveal" type="button" aria-controls="a-brain" aria-expanded="false">Show a strong brainstorm</button></div>
+  </div>
+  <div class="ans" id="a-brain" hidden>
+    <p class="who">Strong brainstorm, grouped by the profit tree</p>
+    <div class="drivers">
+      <div data-say><b>More visitors</b><p>A monthly membership. Cheaper weekday tickets. Family deals. Showing live sports and concerts.</p></div>
+      <div data-say><b>More money per visitor</b><p>Premium screens in busy theaters. Order food from your seat. A better menu, or a bar for adults.</p></div>
+      <div data-say><b>Lower costs</b><p>Close or sublease theaters that lose money. Schedule staff to match busy hours. Cut energy use.</p></div>
+      <div data-say><b>New revenue</b><p>More on-screen advertising. Private rentals for parties and companies. Gaming tournaments in the morning.</p></div>
+    </div>
+    <p class="note" style="margin-top:10px" data-say>Using your profit tree as the groups shows the interviewer your ideas come from a structure, not a guess.</p>
+  </div>
+  <figure class="ex">
+    <div class="ex-h"><span class="ex-t">Idea map: ease × impact</span><span class="ex-ref">Exhibit 3 · Team's idea list</span></div>
+    <div class="seg" role="group" aria-label="Which scores to plot">
+      <button class="btn small" type="button" id="mMine" aria-pressed="true">Your scores</button>
+      <button class="btn small" type="button" id="mTeam" aria-pressed="false" disabled>Team's scores</button>
+    </div>
+    <div class="heat">
+      <div>
+        <div id="heatmap"></div>
+        <p class="mapnote" id="mapnote">Your dots appear here as you score each idea.</p>
+      </div>
+      <div>
+        <p class="mapnote" style="margin:0 0 6px">Pick E (ease) and I (impact): 1 is low, 5 is high.</p>
+        <ul class="reg scorer" id="scorer"></ul>
+        <p class="mytop" id="mytop" aria-live="polite">Score all six to see your top three.</p>
+        <div class="ramp" aria-hidden="true">Score <i style="background:var(--h1)"></i><i style="background:var(--h2)"></i><i style="background:var(--h3)"></i><i style="background:var(--h4)"></i><i style="background:var(--h5)"></i> higher</div>
+      </div>
+    </div>
+    <figcaption>Score = ease × impact. Ideas are from the case; scores are yours to set.</figcaption>
+  </figure>
+  <div class="move">
+    <span class="lbl">Then</span>
+    <p data-say>Give one reason for each score, then name your top three.</p>
+    <div class="acts"><button class="btn small timer" type="button" data-secs="90">90s timer</button><button class="btn primary small reveal" type="button" id="rv-prio" aria-controls="a-prio" aria-expanded="false">Show the team's scores</button></div>
+  </div>
+  <div class="ans" id="a-prio" hidden>
+    <p class="who">The team's scores, with reasons</p>
+    <ul class="reg" id="teamlist"></ul>
+    <h3>Say it like this</h3>
+    <div class="script"><p data-say>"I'd start with three. A monthly membership, because it fills empty seats and members still buy snacks. Cheaper weekday tickets, because they're easy and every extra visitor still adds about 9 dollars. And closing or subleasing the theaters that lose money, because it cuts fixed costs fast. Premium screens come next, but only in the busiest theaters."</p></div>
+  </div>
+
+  <div class="mc" data-answer="0">
+    <div class="mc-head"><p class="stem" data-say>Which three come first?</p></div>
+    <div class="opts">
+      <button class="opt" type="button" data-say>A, B, and C: membership, weekday pricing, and closing money-losing theaters.</button>
+      <button class="opt" type="button" data-say>D, E, and F: premium everywhere, event rentals, and higher prices.</button>
+      <button class="opt" type="button" data-say>B, D, and F.</button>
+      <button class="opt" type="button" data-say>All six at once, with equal effort.</button>
+    </div>
+    <div class="why" hidden>
+      <p data-say>A, B, and C go straight at the problem: empty seats and fixed costs. D has the biggest impact per screen but is slow, costly, and cannibalizes, so do it selectively. E is easy but small. F is easy, but price increases already pushed visitors away.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 09 RECOMMEND -->
+<section class="step" id="recommend">
+  <div class="sh"><span class="idx">09</span><h2>The recommendation</h2><button class="btn small listen" type="button">Listen</button></div>
+  <div class="iv">
+    <p class="who">Interviewer</p>
+    <p data-say>The CEO just walked in. You have 60 seconds. What should Starlight do?</p>
+  </div>
+  <div class="move">
+    <span class="lbl">Your move</span>
+    <p data-say>Lead with the answer. Then three reasons, the main risk, and next steps.</p>
+    <div class="acts"><button class="btn small timer" type="button" data-secs="60">60s timer</button><button class="btn primary small reveal" type="button" aria-controls="a-rec" aria-expanded="false">Show a strong answer</button></div>
+  </div>
+  <div class="ans" id="a-rec" hidden>
+    <p class="who">Strong answer</p>
+    <div class="struct"><span>Answer</span><span>3 reasons</span><span>Risk</span><span>Next steps</span></div>
+    <div class="script">
+      <p data-say>"Starlight can get back to about 60 million in three years, but not by raising prices again. It needs to fill empty seats, cut what loses money, and go premium only where it pays."</p>
+      <p data-say>"First, fill seats. 84 percent of seats are empty, and each extra visitor adds about 9 dollars of profit. A monthly membership and cheaper weekday tickets could add about 15 million."</p>
+      <p data-say>"Second, cut what loses money. Closing or subleasing the 15 worst theaters removes their losses and fixed costs, worth about 10 million."</p>
+      <p data-say>"Third, go premium where it pays. Converting about 100 screens in the busiest theaters adds about 135 thousand each after cannibalization. That's about 15 million, for about 90 million of the 200 million budget."</p>
+      <p data-say>"The main risk is that the membership mostly attracts people who would have paid full price anyway. So I'd test membership and weekday pricing in 10 theaters first. Next steps: launch that test, start lease talks on the 15 worst theaters, and pick the first 30 screens to convert."</p>
+    </div>
+    <h3>The three-year plan</h3>
+    <div class="road">
+      <div class="phase" data-say><span class="d">Year 1</span><b>Fill seats</b><ul><li>Test membership and weekday pricing in 10 theaters, then roll out.</li><li>Start lease talks on the 15 worst theaters.</li><li>Convert the first 30 premium screens.</li></ul></div>
+      <div class="phase" data-say><span class="d">Year 2</span><b>Cut and convert</b><ul><li>Close or sublease the 15 theaters.</li><li>Convert 40 more premium screens.</li><li>Add seat-side food ordering.</li></ul></div>
+      <div class="phase" data-say><span class="d">Year 3</span><b>Scale</b><ul><li>Convert the last 30 premium screens.</li><li>Adjust membership pricing.</li><li>Review the next weakest theaters.</li></ul></div>
+    </div>
+    <h3>Indicators to track</h3>
+    <ul data-say>
+      <li>Share of seats filled. Target: from 16 percent up to 19 percent.</li>
+      <li>Members, and how often they come each month.</li>
+      <li>Extra profit per premium screen. Target: at least 135 thousand dollars.</li>
+      <li>Theaters losing money. Target: zero.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 10 DRILLS -->
+<section class="step" id="drills">
+  <div class="sh"><span class="idx">10</span><h2>Bonus drills: market sizing and growth</h2><button class="btn small listen" type="button">Listen</button></div>
+  <p class="sub">Two short reps in case the interviewer switches to a classic consulting question.</p>
+
+  <div class="drill">
+    <h3>Market sizing: U.S. movie tickets</h3>
+    <div class="iv">
+      <p class="who">Interviewer</p>
+      <p data-say>Estimate how much Americans spend on movie tickets in a year.</p>
+    </div>
+    <div class="move">
+      <span class="lbl">Your move</span>
+      <p data-say>Go top-down. Start with the population, narrow to moviegoers, then multiply by trips and price. Say each assumption out loud.</p>
+      <div class="acts"><button class="btn small timer" type="button" data-secs="90">90s timer</button></div>
+    </div>
+    <div class="stepper" style="margin-top:14px">
+      <ol class="calc">
+        <li class="st" hidden data-say="Start broad. The U.S. has about 330 million people."><span class="t">Start broad</span><span class="f">U.S. population</span><span class="r tnum">≈330M</span></li>
+        <li class="st" hidden data-say="Times about 60 percent who see at least one movie in a theater each year. That's about 200 million moviegoers."><span class="t">× 60% go at least once a year</span><span class="f">Moviegoers</span><span class="r tnum">≈200M</span></li>
+        <li class="st" hidden data-say="Times about 4 trips a year each. That's about 800 million tickets."><span class="t">× 4 trips a year</span><span class="f">Tickets sold</span><span class="r tnum">≈800M</span></li>
+        <li class="st" hidden data-say="Times about 11 dollars a ticket. That's about 8.8 billion dollars a year."><span class="t">× $11 a ticket</span><span class="f">800M × $11</span><span class="r tnum">≈$8.8B</span></li>
+        <li class="st" hidden data-say="Sanity check. Recent U.S. box office has been in the high single-digit billions, so this is in the right range."><span class="t">Sanity check</span><span class="f">Recent U.S. box office: high single-digit billions</span><span class="r tnum">✓</span></li>
+        <li class="st" hidden data-say="Starlight check. Starlight's 30 million visitors would be just under 4 percent of 800 million tickets, which fits a mid-size chain. The interviewer is grading your structure, not the exact number."><span class="t">Starlight check</span><span class="f">30M ÷ 800M ≈ 4%. Fits a mid-size chain</span><span class="r tnum">✓</span></li>
+      </ol>
+      <div class="row"><button class="btn primary small next" type="button">Reveal step 1 of 6</button><button class="btn small reset" type="button">Start over</button></div>
+    </div>
+    <p class="src">All inputs are interview-style assumptions, not market research.</p>
+  </div>
+
+  <div class="drill">
+    <h3>Market growth: will moviegoing come back?</h3>
+    <div class="iv">
+      <p class="who">Interviewer</p>
+      <p data-say>Do you think theater attendance will recover? What does that mean for Starlight?</p>
+    </div>
+    <div class="move">
+      <span class="lbl">Your move</span>
+      <p data-say>Split growth into more visitors and more spend per visitor, then list drivers and headwinds.</p>
+      <div class="acts"><button class="btn small timer" type="button" data-secs="60">60s timer</button><button class="btn primary small reveal" type="button" aria-controls="a-growth" aria-expanded="false">Show a strong answer</button></div>
+    </div>
+    <div class="ans" id="a-growth" hidden>
+      <p class="who">Strong answer</p>
+      <div class="eq">Market growth = more visitors × more spend per visitor</div>
+      <div class="drivers">
+        <div data-say><b>Event films</b><p>Big releases still pull crowds that want to see them first, on a big screen.</p></div>
+        <div data-say><b>Premium formats</b><p>Giant screens and recliners offer something people can't get at home.</p></div>
+        <div data-say><b>Better food and seats</b><p>Higher spend per visitor, even if visits don't fully recover.</p></div>
+        <div data-say><b>New events</b><p>Concerts, live sports, and anime nights fill screens between big films.</p></div>
+      </div>
+      <h3>Headwinds</h3>
+      <ul data-say>
+        <li>Films arrive on streaming sooner, so many people wait.</li>
+        <li>Fewer films are released than before.</li>
+        <li>Younger people spend more time on games and social video.</li>
+      </ul>
+      <h3>Quick math</h3>
+      <p data-say>If visitors keep falling 8 percent a year, how long until they halve? Use the rule of 72: 72 divided by 8 is 9 years.</p>
+      <div class="script"><p data-say>"I don't expect visits to return to their old level, but spend per visitor can keep rising. So Starlight should plan for a smaller, more premium business: fill the seats it has, close what doesn't pay, and charge more where the experience is better."</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 TEST -->
+<section class="step test" id="test">
+  <div class="sh"><span class="idx">11</span><h2>Practice test</h2><button class="btn small listen" type="button">Listen</button></div>
+  <p class="sub" data-say>Twelve multiple-choice questions on case skills and the Starlight case. Pick an answer to see the explanation.</p>
+  <div class="scorebar"><span class="score" id="score">0 / 0<small>answered 0 of 12</small></span><button class="btn small" type="button" id="resetTest">Reset test</button></div>
+  <div id="testq"></div>
+  <div class="done" id="done" hidden></div>
+</section>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>An original practice case written in the style of BCG interviews. It isn't an official BCG case. All figures, exhibits, and the company are invented. Format notes come from public interview prep guides, and formats vary by office.</p>
+    <p>Night-before tip: run steps 04, 07, and 09 out loud once more in the morning, then take the test.</p>
+  </div>
+</footer>
+<div id="tip" hidden role="tooltip"></div>
+
+<script>
+(function(){
+  "use strict";
+  const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+  const NS="http://www.w3.org/2000/svg";
+  const svgEl=(t,a={})=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  const LET="ABCD";
+
+  /* ---------- tooltip ---------- */
+  const tip=$("#tip");
+  function showTip(el,x,y){tip.textContent=el.getAttribute("data-tip");tip.hidden=false;
+    const w=tip.offsetWidth,h=tip.offsetHeight;let L=x+12,T=y-h-10;
+    if(L+w>innerWidth-8)L=x-w-12; if(T<8)T=y+14; tip.style.left=Math.max(8,L)+"px";tip.style.top=T+"px";}
+  document.addEventListener("pointermove",e=>{const t=e.target.closest&&e.target.closest("[data-tip]");if(t)showTip(t,e.clientX,e.clientY);else tip.hidden=true;});
+  document.addEventListener("focusin",e=>{const t=e.target.closest&&e.target.closest("[data-tip]");if(t){const r=t.getBoundingClientRect();showTip(t,r.left+r.width/2,r.top);}});
+  document.addEventListener("focusout",()=>{tip.hidden=true;});
+  addEventListener("scroll",()=>{tip.hidden=true;},{passive:true});
+
+  /* ---------- reveal toggles ---------- */
+  $$(".reveal").forEach(b=>{const t=document.getElementById(b.getAttribute("aria-controls"));const show=b.textContent;
+    const hide=show.startsWith("Show as")?"Hide table":"Hide";
+    b.addEventListener("click",()=>{const open=t.hidden;t.hidden=!open;b.setAttribute("aria-expanded",String(open));b.textContent=open?hide:show;});});
+
+  /* ---------- timers ---------- */
+  let actx=null;
+  function beep(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=880;g.gain.setValueAtTime(.0001,actx.currentTime);g.gain.exponentialRampToValueAtTime(.2,actx.currentTime+.02);g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+.5);o.connect(g).connect(actx.destination);o.start();o.stop(actx.currentTime+.55);}catch(e){}}
+  $$(".timer").forEach(b=>{const secs=+b.dataset.secs,label=b.textContent;let id=null,left=0;
+    const fmt=s=>Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
+    b.addEventListener("click",()=>{
+      if(id){clearInterval(id);id=null;b.textContent=label;b.setAttribute("aria-pressed","false");return;}
+      try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();}catch(e){}
+      left=secs;b.textContent=fmt(left)+" · stop";b.setAttribute("aria-pressed","true");
+      id=setInterval(()=>{left--;if(left<=0){clearInterval(id);id=null;b.textContent="Time. Answer now";b.setAttribute("aria-pressed","false");beep();setTimeout(()=>{if(!id)b.textContent=label;},4000);return;}b.textContent=fmt(left)+" · stop";},1000);
+    });});
+
+  /* ---------- steppers ---------- */
+  $$(".stepper").forEach(s=>{const steps=$$(".st",s),next=$(".next",s),reset=$(".reset",s);let i=0;
+    const upd=()=>{next.hidden=i>=steps.length;next.textContent="Reveal step "+(i+1)+" of "+steps.length;};
+    next.addEventListener("click",()=>{if(i<steps.length){steps[i].hidden=false;i++;upd();}});
+    reset.addEventListener("click",()=>{steps.forEach(x=>x.hidden=true);i=0;upd();});upd();});
+
+
+  /* ---------- chart builders ---------- */
+  function niceMax(m){const steps=[1,1.5,2,2.5,3,4,5,6,8,10,12,15,20,25,30,40,50,60,80,100,120,150,200,250,300,400,500,600,800,1000,1200,1500,2000];for(const s of steps)if(s>=m)return s;return Math.ceil(m/500)*500;}
+  function roundTop(x,y,w,h,r){r=Math.min(r,h,w/2);return `M${x},${y+h}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h}Z`;}
+  function multiples(el,Q,SER){
+    SER.forEach(s=>{
+      const f=s.f||(v=>String(v)),n=s.v.length,last=n-1;
+      const card=document.createElement("div");card.className="mini";
+      card.innerHTML=`<div class="nm">${s.k}</div><div class="ch">${f(s.v[0])} → ${f(s.v[last])}</div>`;
+      const W=200,H=104,top=18,bot=20,pl=4,pr=4,ph=H-top-bot,band=(W-pl-pr)/n,bw=Math.min(22,band*.58),max=niceMax(Math.max(...s.v)*1.12);
+      const svg=svgEl("svg",{viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":`${s.k}: ${s.v.map((v,i)=>Q[i]+" "+f(v)).join(", ")}`});
+      s.v.forEach((v,i)=>{const cx=pl+band*i+band/2,h=Math.max(1,v/max*ph),x=cx-bw/2,y=top+ph-h;
+        svg.appendChild(svgEl("path",{d:roundTop(x,y,bw,h,4),fill:"var(--s1)"}));
+        if(i===0||i===last){const t=svgEl("text",{x:cx,y:y-5,"text-anchor":"middle","font-size":"10.5","font-weight":"600",fill:"var(--fg-2)"});t.textContent=f(v);svg.appendChild(t);}
+        const q=svgEl("text",{x:cx,y:H-5,"text-anchor":"middle","font-size":n>5?"8.5":"9.5",fill:"var(--muted)"});q.textContent=Q[i];svg.appendChild(q);
+        svg.appendChild(svgEl("rect",{x:pl+band*i,y:0,width:band,height:H,fill:"transparent","data-tip":`${s.k} · ${Q[i]}: ${f(v)}`}));
+      });
+      svg.insertBefore(svgEl("line",{x1:0,x2:W,y1:top+ph+.5,y2:top+ph+.5,stroke:"var(--axis)","stroke-width":"1"}),svg.firstChild);
+      card.appendChild(svg);el.appendChild(card);
+    });
+  }
+  function multTable(el,Q,SER){
+    el.innerHTML=`<table><thead><tr><th>Measure</th>${Q.map(q=>`<th class="n">${q}</th>`).join("")}</tr></thead><tbody>${SER.map(s=>`<tr><td>${s.k}</td>${s.v.map(v=>`<td class="n">${(s.f||String)(v)}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+  }
+  function axis(el,o){const ax=document.createElement("div");ax.className="axis";
+    ax.innerHTML=`<div></div><div class="ticks">${o.ticks.map(v=>`<span style="left:${v/o.max*100}%">${o.tick(v)}</span>`).join("")}</div>`;el.appendChild(ax);
+    if(o.ref&&o.ref.note){const p=document.createElement("p");p.className="tolnote";p.textContent=o.ref.note;el.appendChild(p);}}
+  /* one bar per row: rows {d,t,v,lab,tip,st:{bad,txt}} */
+  function hbar(el,rows,o){
+    rows.forEach(r=>{const row=document.createElement("div");row.className="hrow";const w=r.v/o.max*100;
+      row.innerHTML=`<div class="hlab"><b>${r.d}</b>${r.t?`<span>${r.t}</span>`:""}${r.st?`<span class="status ${r.st.bad?"bad":"ok"}">${r.st.bad?"▲ ":"✓ "}${r.st.txt}</span>`:""}</div>
+        <div class="track" tabindex="0" data-tip="${r.tip||r.d+": "+r.lab}"><div class="bar" style="width:${Math.max(.4,w)}%"></div><span class="bval" style="left:${w}%">${r.lab}</span>${o.ref?`<div class="tol" style="left:${o.ref.at/o.max*100}%"></div>`:""}</div>`;
+      el.appendChild(row);});
+    axis(el,o);
+  }
+  /* stacked segments, total named in the label: rows {n,d,seg:[[v,cls,tip]]} */
+  function stack(el,rows,o){
+    rows.forEach(r=>{const row=document.createElement("div");row.className="hrow";let x=0,bars="";
+      r.seg.forEach(([v,c,t],i)=>{const left=x/o.max*100,w=v/o.max*100;
+        bars+=`<div class="bar ${c}" tabindex="0" data-tip="${t}" style="left:calc(${left}% + ${i?2:0}px);width:calc(${w}% - ${i?2:0}px);border-radius:${i===r.seg.length-1?"0 4px 4px 0":"0"}"></div>`;x+=v;});
+      row.innerHTML=`<div class="hlab"><b>${r.n}</b><span>${r.d}</span></div><div class="track">${bars}${o.ref?`<div class="tol" style="left:${o.ref.at/o.max*100}%"></div>`:""}</div>`;
+      el.appendChild(row);});
+    axis(el,o);
+  }
+  /* waterfall: rows {n,d,total} or {n,d,delta}; totals neutral, ups blue, downs orange */
+  function waterfall(el,rows,o){let run=0;
+    rows.forEach(r=>{const row=document.createElement("div");row.className="hrow";let bar,lab,tip;
+      if(r.total!==undefined){run=r.total;bar=`<div class="bar b3" style="width:${r.total/o.max*100}%"></div>`;lab=`<span class="bval" style="left:${r.total/o.max*100}%">${o.fmt(r.total)}</span>`;tip=`${r.n}: ${o.fmt(r.total)}`;}
+      else{const a=Math.min(run,run+r.delta),b=Math.max(run,run+r.delta);
+        bar=`<div class="bar ${r.delta<0?"b2":""}" style="left:${a/o.max*100}%;width:${(b-a)/o.max*100}%;border-radius:3px"></div>`;
+        lab=`<span class="bval" style="left:${b/o.max*100}%">${r.delta<0?"−":"+"}${o.fmt(Math.abs(r.delta))}</span>`;tip=`${r.n}: ${r.delta<0?"−":"+"}${o.fmt(Math.abs(r.delta))}`;run+=r.delta;}
+      row.innerHTML=`<div class="hlab"><b>${r.n}</b><span>${r.d}</span></div><div class="track" tabindex="0" data-tip="${tip}">${bar}${lab}</div>`;
+      el.appendChild(row);});
+    axis(el,o);
+  }
+
+  /* ---------- heat map you score ---------- */
+  function heatScorer(HM){
+    const band=s=>s>=20?5:s>=15?4:s>=9?3:s>=5?2:1;
+    const C=54,ox=84,oy=8,G=C*5,HW=ox+G+8,HH=oy+G+52;
+    const hs=svgEl("svg",{viewBox:`0 0 ${HW} ${HH}`,role:"img","aria-label":"Heat map"});
+    for(let X=1;X<=5;X++)for(let Y=1;Y<=5;Y++)
+      hs.appendChild(svgEl("rect",{x:ox+(X-1)*C+1,y:oy+(5-Y)*C+1,width:C-2,height:C-2,rx:3,fill:`var(--h${band(X*Y)})`}));
+    for(let k=1;k<=5;k++){
+      const t=svgEl("text",{x:ox+(k-.5)*C,y:oy+G+15,"text-anchor":"middle","font-size":"11",fill:"var(--fg-2)"});t.textContent=k;hs.appendChild(t);
+      if(HM.lx[k-1]){const t2=svgEl("text",{x:ox+(k-.5)*C,y:oy+G+28,"text-anchor":"middle","font-size":"9.5",fill:"var(--muted)"});t2.textContent=HM.lx[k-1];hs.appendChild(t2);}
+      const u=svgEl("text",{x:ox-8,y:oy+(5-k+.5)*C+4,"text-anchor":"end","font-size":"11",fill:"var(--fg-2)"});u.textContent=k;hs.appendChild(u);
+      if(HM.ly[k-1]){const u2=svgEl("text",{x:ox-20,y:oy+(5-k+.5)*C+4,"text-anchor":"end","font-size":"9.5",fill:"var(--muted)"});u2.textContent=HM.ly[k-1];hs.appendChild(u2);}
+    }
+    const xt=svgEl("text",{x:ox+G/2,y:oy+G+46,"text-anchor":"middle","font-size":"11","font-weight":"600",fill:"var(--fg)"});xt.textContent=HM.xName+" →";hs.appendChild(xt);
+    const yt=svgEl("text",{x:9,y:oy+G/2,"text-anchor":"middle","font-size":"11","font-weight":"600",fill:"var(--fg)",transform:`rotate(-90 9 ${oy+G/2})`});yt.textContent=HM.yName+" →";hs.appendChild(yt);
+    const dots=svgEl("g");hs.appendChild(dots);$("#heatmap").appendChild(hs);
+    const IT=HM.items,xn=HM.xName.toLowerCase(),yn=HM.yName.toLowerCase();
+    const opt=lab=>`<option value="">${lab}</option>`+[1,2,3,4,5].map(v=>`<option value="${v}">${v}</option>`).join("");
+    $("#scorer").innerHTML=IT.map(r=>`<li><span class="id">${r.id}</span><span class="nm">${r.n}</span><span class="pick"><select id="x-${r.id}" aria-label="${r.id} ${xn}, 1 to 5">${opt(HM.xs)}</select><select id="y-${r.id}" aria-label="${r.id} ${yn}, 1 to 5">${opt(HM.ys)}</select><span class="sc" id="s-${r.id}">–</span></span></li>`).join("");
+    const rank=(a,b)=>b.x*b.y-a.x*a.y||b.y-a.y;
+    $("#teamlist").innerHTML=[...IT].sort(rank).map(r=>`<li data-say="${r.id}. ${r.n}. ${HM.xName} ${r.x}, ${yn} ${r.y}, score ${r.x*r.y}. ${r.w}"><span class="id">${r.id}</span><span class="nm"><b>${r.n}</b><span class="w">${r.w}</span></span><span class="sc">${r.x}×${r.y} = ${r.x*r.y}</span></li>`).join("");
+    let mode="mine";
+    const mine=()=>IT.map(r=>({id:r.id,n:r.n,x:+$("#x-"+r.id).value,y:+$("#y-"+r.id).value})).filter(r=>r.x&&r.y);
+    const offsets=n=>n<=1?[[0,0]]:n===2?[[-12,0],[12,0]]:n<=4?[[-12,-11],[12,-11],[-12,11],[12,11]]:[[-15,-11],[0,-11],[15,-11],[-15,11],[0,11],[15,11]];
+    function plot(list){
+      while(dots.firstChild)dots.removeChild(dots.firstChild);
+      const cells={};list.forEach(r=>{const k=r.x+"-"+r.y;(cells[k]=cells[k]||[]).push(r);});
+      Object.values(cells).forEach(arr=>{const off=offsets(arr.length),big=arr.length===1,rad=big?14:arr.length<=4?10:8;
+        arr.forEach((r,j)=>{const cx=ox+(r.x-.5)*C+off[j][0],cy=oy+(5-r.y+.5)*C+off[j][1];
+          const g=svgEl("g",{tabindex:"0","data-tip":`${r.id} · ${r.n}: ${xn} ${r.x}, ${yn} ${r.y}, score ${r.x*r.y}`});
+          g.appendChild(svgEl("circle",{cx,cy,r:rad+2,fill:"var(--surface)"}));
+          g.appendChild(svgEl("circle",{cx,cy,r:rad,fill:"var(--dot)"}));
+          const t=svgEl("text",{x:cx,y:cy+(big?4:3),"text-anchor":"middle","font-size":big?"11":"8.5","font-weight":"600",fill:"var(--dot-ink)"});t.textContent=r.id;g.appendChild(t);
+          dots.appendChild(g);});});
+      hs.setAttribute("aria-label",`Heat map of ${xn} by ${yn}, ${mode==="team"?"team's scores":"your scores"}. `+(list.length?list.map(r=>`${r.id}: ${xn} ${r.x}, ${yn} ${r.y}`).join(". "):"Nothing scored yet."));
+    }
+    function render(){
+      const m=mine();
+      IT.forEach(r=>{const x=+$("#x-"+r.id).value,y=+$("#y-"+r.id).value;$("#s-"+r.id).textContent=x&&y?"= "+x*y:"–";});
+      const top=$("#mytop");
+      if(!m.length)top.textContent=`Score all ${IT.length} to see your top three.`;
+      else if(m.length<IT.length)top.textContent=`Scored ${m.length} of ${IT.length}. Score all ${IT.length} to see your top three.`;
+      else top.textContent="Your top three by score: "+[...m].sort(rank).slice(0,3).map(r=>`${r.id} (${r.x*r.y})`).join(", ")+".";
+      const note=$("#mapnote");
+      if(mode==="team"){plot(IT);note.textContent="Showing the team's scores. Switch back to compare with yours.";}
+      else{plot(m);note.textContent=m.length?"Showing your scores. Shared cells show dots side by side.":"Your dots appear here as you score each one.";}
+    }
+    function setMode(v){mode=v;$("#mMine").setAttribute("aria-pressed",String(v==="mine"));$("#mTeam").setAttribute("aria-pressed",String(v==="team"));render();}
+    $("#scorer").addEventListener("change",()=>{if(mode!=="mine")setMode("mine");else render();});
+    $("#mMine").addEventListener("click",()=>setMode("mine"));
+    $("#mTeam").addEventListener("click",()=>{if(!$("#mTeam").disabled)setMode("team");});
+    $("#rv-prio").addEventListener("click",()=>{$("#mTeam").disabled=false;setMode($("#a-prio").hidden?"mine":"team");});
+    render();
+  }
+
+  const PAGEKEY="starlight";
+  /* Exhibit 1: trends */
+  const Q=["2022","2023","2024","2025"];
+  const SER=[
+    {k:"Visitors",v:[40,36,33,30],f:v=>v+"M"},
+    {k:"Average ticket price",v:[10,10.75,11.25,12],f:v=>"$"+v.toFixed(2)},
+    {k:"Snack spend per visitor",v:[6,6.5,7,7.5],f:v=>"$"+v.toFixed(2)},
+    {k:"Share of seats filled",v:[22,20,18,16],f:v=>v+"%"},
+    {k:"Premium screens' share of tickets",v:[10,13,16,20],f:v=>v+"%"},
+    {k:"Profit",v:[60,45,30,20],f:v=>"$"+v+"M"},
+  ];
+  multiples($("#mult"),Q,SER);multTable($("#t-ex1"),Q,SER);
+
+  /* Exhibit 2: profit bridge */
+  waterfall($("#hb"),[
+    {n:"Profit three years ago",d:"Starting point",total:60},
+    {n:"Higher ticket prices",d:"$2 more a ticket, after the studios' share",delta:25},
+    {n:"Higher snack spend",d:"$1.50 more per visitor",delta:35},
+    {n:"Fewer visitors",d:"10 million fewer, about $9 of profit each",delta:-90},
+    {n:"Bigger share to studios",d:"Studios took a slightly larger cut",delta:-5},
+    {n:"Higher wages and rent",d:"Fixed costs crept up",delta:-5},
+    {n:"Profit last year",d:"Where it ended",total:20},
+  ],{max:150,ticks:[0,50,100,150],tick:v=>"$"+v+"M",fmt:v=>"$"+v+"M"});
+
+  /* Math chart */
+  stack($("#siz"),[
+    {n:"Regular screen",d:"25,000 × $9 = $225K",seg:[[225,"","Regular screen profit: $225K"]]},
+    {n:"Premium, on paper",d:"30,000 × $15 = $450K",seg:[[225,"","Regular screen profit: $225K"],[225,"b2","Extra on paper: $225K"]]},
+    {n:"Premium, after cannibalization",d:"$225K + $135K = $360K",seg:[[225,"","Regular screen profit: $225K"],[135,"b2","Real extra: $135K"]]},
+  ],{max:500,ticks:[0,100,200,300,400,500],tick:v=>"$"+v+"K"});
+
+  /* Ideas scorer */
+  heatScorer({xName:"Ease",yName:"Impact",xs:"E",ys:"I",lx:["Hard","","Medium","","Easy"],ly:["Small","","Medium","","Big"],items:[
+    {id:"A",n:"Monthly membership: one fee, up to three movies",x:4,y:4,w:"Fills empty seats and brings regular visits. Members still buy snacks."},
+    {id:"B",n:"Cheaper weekday tickets",x:5,y:3,w:"Easy to launch, and each extra visitor still adds about $9 of profit."},
+    {id:"C",n:"Close or sublease the 15 theaters that lose money",x:3,y:4,w:"Cuts fixed costs fast, but leases can be hard to exit."},
+    {id:"D",n:"Convert screens to premium across the chain",x:2,y:5,w:"Biggest single lever, but costly and slow, and a third of visitors are cannibalized."},
+    {id:"E",n:"Rent auditoriums for events and gaming in the mornings",x:4,y:2,w:"Uses empty hours, but the money is small."},
+    {id:"F",n:"Raise ticket prices again",x:5,y:1,w:"Easy, but likely to push away even more visitors."},
+  ]});
+
+  const TEST=[
+    {q:"In a candidate-led case, who decides what to analyze next?",o:["You do","The interviewer, always","The client","Nobody; it's random"],a:0,w:"You set the structure, choose where to dig, and ask for data. The interviewer follows and pushes back."},
+    {q:"Profit equals…",o:["Revenue minus costs","Revenue times price","Price minus volume","Costs minus revenue"],a:0,w:"Start every profitability case here, then split revenue and costs further."},
+    {q:"Revenue can be split into…",o:["Price × volume","Rent × staff","Profit × costs","Seats × screens"],a:0,w:"How much you charge times how many you sell. At Starlight, prices rose but volume fell."},
+    {q:"Visitors fell 25%, but profit fell about 67%. Why?",o:["Most costs are fixed, so profit falls faster than volume","Ticket prices fell","Studios stopped charging","Snack sales stopped"],a:0,w:"That's operating leverage. Rent and staff don't shrink when fewer people come."},
+    {q:"Each lost visitor costs Starlight about $9 of profit. 10 million fewer visitors cost about…",o:["$9M","$90M","$900M","$19M"],a:1,w:"10 million × $9 = $90 million. That one bar is bigger than all the price and snack gains combined."},
+    {q:"Cannibalization means…",o:["A new product takes sales from your own existing product","A competitor copies your product","Prices fall across the industry","Customers stop coming entirely"],a:0,w:"Some premium visitors would have come anyway to a regular screen, so their profit isn't truly new."},
+    {q:"A premium screen adds $225K on paper, but 10,000 of its visitors, worth $9 each, would have come anyway. What's the real gain?",o:["$225K","$135K","$90K","$315K"],a:1,w:"10,000 × $9 = $90K of double counting. $225K − $90K = $135K."},
+    {q:"Which is a fixed cost for a movie theater?",o:["Theater rent","Popcorn kernels","The studios' share of each ticket","Soda cups"],a:0,w:"Rent stays the same whether 10 people or 1,000 come. The others rise with each visitor."},
+    {q:"Starlight fills 16% of its seats. That number measures…",o:["Utilization","Cannibalization","Revenue sharing","Churn"],a:0,w:"Utilization is how much of your capacity gets used. Low utilization plus fixed costs means room to grow profit by filling seats."},
+    {q:"Why not just raise ticket prices again?",o:["Lost visitors are the main problem, and higher prices could push more away","Prices are set by the government","Studios forbid price increases","It would cost too much to print new tickets"],a:0,w:"The bridge shows volume, not price, is what broke. Push price harder and you risk losing more $9 visitors."},
+    {q:"In a candidate-led case, the best way to ask for data is…",o:["Specific and tied to your hypothesis, like attendance over time","\"Can I see everything you have?\"","\"What should I look at next?\"","Don't ask; just assume"],a:0,w:"A specific ask shows you're steering. Vague asks hand the wheel back to the interviewer."},
+    {q:"Which is the strongest opening line for your final recommendation?",o:["Let me walk you through everything I looked at.","Movie theaters are a tough business right now.","It depends on what the CEO wants.","Starlight can get back to about $60M in three years by filling empty seats, closing 15 losing theaters, and going premium only where it pays."],a:3,w:"Lead with the answer, then support it. Consultants call this answer-first, or the pyramid principle."},
+  ];
+  const testq=$("#testq");
+  TEST.forEach((t,n)=>{const d=document.createElement("div");d.className="mc";d.dataset.answer=t.a;d.dataset.group="test";
+    d.innerHTML=`<div class="mc-head"><p class="stem" data-say="Question ${n+1}. ${t.q.replace(/"/g,"&quot;")}"><span class="qn">Q${n+1}</span>${t.q}</p><button class="btn small qlisten" type="button" aria-label="Listen to question ${n+1}">Listen</button></div>
+      <div class="opts">${t.o.map(o=>`<button class="opt" type="button" data-say="${o.replace(/"/g,"&quot;")}">${o}</button>`).join("")}</div>
+      <div class="why" hidden><p data-say="${t.w.replace(/"/g,"&quot;")}">${t.w}</p></div>`;
+    testq.appendChild(d);});
+
+  /* ---------- multiple choice engine ---------- */
+  function setupMC(mc){const opts=$$(".opt",mc);
+    opts.forEach((o,i)=>{if(!o.querySelector(".L")){const x=document.createElement("span");x.className="x";while(o.firstChild)x.appendChild(o.firstChild);
+        const L=document.createElement("span");L.className="L";L.textContent=LET[i];o.append(L,x);
+        o.dataset.say=LET[i]+". "+(o.dataset.say||x.textContent);}
+      o.addEventListener("click",()=>answer(mc,i));});}
+  function answer(mc,i){if(mc.dataset.done)return;mc.dataset.done="1";const a=+mc.dataset.answer,opts=$$(".opt",mc);
+    opts.forEach((o,k)=>{o.disabled=true;if(k===a){o.classList.add("right");o.insertAdjacentHTML("beforeend",`<span class="tag">✓ ${k===i?"Correct":"Answer"}</span>`);}
+      else if(k===i){o.classList.add("wrong");o.insertAdjacentHTML("beforeend",`<span class="tag">✕ Your pick</span>`);}});
+    mc.dataset.correct=String(i===a);$(".why",mc).hidden=false;if(mc.dataset.group==="test")score();}
+  function resetMC(mc){delete mc.dataset.done;delete mc.dataset.correct;$$(".opt",mc).forEach(o=>{o.disabled=false;o.classList.remove("right","wrong");const t=$(".tag",o);if(t)t.remove();});$(".why",mc).hidden=true;}
+  $$(".mc").forEach(setupMC);
+  function score(){const qs=$$('.mc[data-group="test"]'),done=qs.filter(q=>q.dataset.done),right=done.filter(q=>q.dataset.correct==="true").length;
+    $("#score").innerHTML=`${right} / ${done.length}<small>answered ${done.length} of ${qs.length}</small>`;
+    const box=$("#done");if(done.length===qs.length){box.hidden=false;
+      box.innerHTML=`<b>${right} of ${qs.length}.</b> `+(right>=11?"You're ready. Run the recommendation in step 09 out loud once more and get some sleep.":right>=8?"Solid. Re-read the explanations you missed, then run steps 04 and 09 out loud.":"Go back to the primer in step 01, then retake the test. The terms will stick on the second pass.");}
+    else box.hidden=true;}
+  $("#resetTest").addEventListener("click",()=>{$$('.mc[data-group="test"]').forEach(resetMC);score();$("#test").scrollIntoView();});
+  score();
+
+  /* ---------- read aloud, with a voice menu ---------- */
+  const synth=window.speechSynthesis,rateSel=$("#rate"),vSel=$("#voicePick");
+  try{const r=localStorage.getItem(PAGEKEY+"-rate");if(r)rateSel.value=r;}catch(e){}
+  rateSel.addEventListener("change",()=>{try{localStorage.setItem(PAGEKEY+"-rate",rateSel.value);}catch(e){}});
+  let speakingBtn=null,voice=null,voices=[];
+  const vrank=v=>(/natural|neural/i.test(v.name)?0:/premium/i.test(v.name)?1:/enhanced/i.test(v.name)?2:/google/i.test(v.name)?3:4)+(/^en[-_]US/i.test(v.lang)?0:.5);
+  function loadVoices(){
+    if(!synth)return;
+    voices=synth.getVoices().filter(v=>/^en/i.test(v.lang)).sort((a,b)=>vrank(a)-vrank(b)||a.name.localeCompare(b.name));
+    if(!vSel)return;
+    let saved=null;try{saved=localStorage.getItem(PAGEKEY+"-voice");}catch(e){}
+    vSel.innerHTML=voices.length?voices.map((v,i)=>`<option value="${i}">${v.name.replace(/[<>&"]/g,"")}${vrank(v)<2?" (natural)":""}</option>`).join(""):'<option value="">Browser default</option>';
+    let idx=voices.findIndex(v=>v.name===saved);if(idx<0)idx=0;
+    if(voices.length)vSel.value=String(idx);voice=voices[idx]||null;
+  }
+  if(vSel)vSel.addEventListener("change",()=>{voice=voices[+vSel.value]||null;try{localStorage.setItem(PAGEKEY+"-voice",voice?voice.name:"");}catch(e){}});
+  loadVoices();
+  if(synth&&"onvoiceschanged" in synth)synth.addEventListener("voiceschanged",loadVoices);
+  function textOf(el){return(el.getAttribute("data-say")||el.innerText||"").replace(/\s+/g," ").trim();}
+  function visible(el){return!!(el.offsetWidth||el.offsetHeight||el.getClientRects().length);}
+  function stop(){if(synth)synth.cancel();if(speakingBtn){speakingBtn.textContent=speakingBtn.dataset.label;speakingBtn.setAttribute("aria-pressed","false");speakingBtn=null;}}
+  function speakChunks(btn,chunks){
+    if(!synth||!chunks.length)return;
+    if(speakingBtn===btn){stop();return;}
+    stop();
+    speakingBtn=btn;btn.dataset.label=btn.dataset.label||btn.textContent;btn.textContent="Stop";btn.setAttribute("aria-pressed","true");
+    chunks.forEach((c,i)=>{const u=new SpeechSynthesisUtterance(c);u.rate=+rateSel.value;if(voice){u.voice=voice;u.lang=voice.lang;}else u.lang="en-US";
+      if(i===chunks.length-1)u.onend=()=>{if(speakingBtn===btn)stop();};synth.speak(u);});
+  }
+  function speak(btn,els){const chunks=[];els.filter(visible).forEach(el=>{textOf(el).split(/(?<=[.?!])\s+(?=[A-Z0-9"“])/).forEach(c=>{if(c)chunks.push(c);});});speakChunks(btn,chunks);}
+  if(!synth){$$(".listen,.qlisten").forEach(b=>b.hidden=true);$(".speed").hidden=true;const vb=$(".voicebar");if(vb)vb.hidden=true;}
+  else{
+    $$(".listen").forEach(b=>{b.dataset.label=b.textContent;b.addEventListener("click",()=>{const sec=b.closest("section");speak(b,$$("[data-say]",sec).filter(el=>!el.parentElement.closest("[data-say]")));});});
+    document.addEventListener("click",e=>{const b=e.target.closest(".qlisten");if(!b)return;const mc=b.closest(".mc");speak(b,$$("[data-say]",mc).filter(el=>!el.parentElement.closest("[data-say]")));});
+    const vt=$("#voiceTest");if(vt){vt.dataset.label=vt.textContent;vt.addEventListener("click",()=>speakChunks(vt,["Hi. This is how I'll read your case.","Pick another voice if this one sounds robotic."]));}
+  }
+  /* ---------- rail highlight ---------- */
+  const chips=$$("#chips a"),map=new Map(chips.map(a=>[a.getAttribute("href").slice(1),a]));
+  if("IntersectionObserver" in window){
+    const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){chips.forEach(c=>c.classList.remove("on"));const a=map.get(en.target.id);if(a){a.classList.add("on");const p=a.parentElement;p.scrollTo({left:a.offsetLeft-p.clientWidth/2+a.offsetWidth/2,behavior:"smooth"});}}});},{rootMargin:"-45% 0px -50% 0px"});
+    $$("section.step").forEach(s=>io.observe(s));
+  }
+})();
+</script>
+</body></html>
